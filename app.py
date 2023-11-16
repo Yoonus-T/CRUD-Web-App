@@ -24,6 +24,7 @@ def create():
         first_name = request.form['first_name']
         last_name = request.form['last_name']
         email = request.form['email']
+        password = request.form['password']
         gender = request.form['gender']
         age = request.form['age']
         address = request.form['address']
@@ -31,28 +32,50 @@ def create():
             first_name=first_name,
             last_name=last_name,
             email=email,
+            password=password,
             gender=gender, 
             age=age,
-            address=address,
+            address=address
         )
         db.session.add(users)
         db.session.commit()
         return redirect('/')
  
- 
 @app.route('/')
-def RetrieveList():
+def home():
+    users = userModel.query.all()
+    return render_template("home.html", users=users)
+
+@app.route('/datalist')
+def datalist():
     users = userModel.query.all()
     return render_template('datalist.html',users = users)
- 
- 
-@app.route('/<int:id>')
-def Retrieveuser(id):
-    users = userModel.query.filter_by(id=id).first()
-    if users:
-        return render_template('data.html', users = users)
-    return f"Employee with id ={id} Doesn't exist"
- 
+
+@app.route('/home', methods=['GET', 'POST'])
+def login():
+    if request.method == 'GET':
+        email = request.form['email']
+        password = request.form['password']
+
+        user = userModel.query.filter_by(email=email, password=password).first()
+
+
+        if user:
+            success_msg = "Login Successful"
+            return render_template('loggedin.html',success_msg=success_msg)
+        else:
+            error = 'Invalid email or password'
+            return render_template('home.html', error=error)
+
+    return render_template('home.html')
+
+
+
+@app.route('/create')
+def register():
+    
+    return render_template('createpage.html')
+
  
 @app.route('/<int:id>/edit',methods = ['GET','POST'])
 def update(id):
@@ -65,6 +88,7 @@ def update(id):
         first_name = request.form['first_name']
         last_name = request.form['last_name']
         email = request.form['email']
+        password = request.form['password']
         gender = request.form['gender']
         age = request.form['age']
         address = request.form['address']
@@ -73,14 +97,14 @@ def update(id):
             first_name=first_name,
             last_name=last_name,
             email=email,
+            password=password,
             gender=gender, 
             age=age,
-            address=address,
+            address=address
         )
         db.session.add(user)
         db.session.commit()
-        return redirect('/')
-        return f"user with id = {id} Does nit exist"
+        return redirect('/datalist')
  
     return render_template('update.html', user = user)
  
@@ -92,7 +116,7 @@ def delete(id):
         if users:
             db.session.delete(users)
             db.session.commit()
-            return redirect('/')
+            return redirect('/datalist')
         abort(404)
      #return redirect('/')
     return render_template('delete.html')
